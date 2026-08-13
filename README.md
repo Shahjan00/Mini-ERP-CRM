@@ -1,133 +1,134 @@
-# Mini ERP + CRM
+# Mini ERP + CRM Operations Portal
 
-A simple ERP and CRM application built with Node.js, Express, React, and PostgreSQL.
+A full-stack, enterprise-grade **Mini ERP & CRM Operations Portal** built for wholesale and distribution companies. The system unifies Customer CRM workflows, Product Inventory management, Stock Movement audit tracking, Sales Challan dispatches with automated stock reservation, and Role-Based Access Control (RBAC).
 
-## Tech Stack
+---
 
-- **Backend**: Node.js + TypeScript + Express.js
-- **Database**: PostgreSQL + Prisma ORM
-- **Frontend**: React + TypeScript + Vite
-- **Authentication**: JWT (to be implemented)
+## 🔑 Test Credentials (Pre-seeded Roles)
 
-## Project Structure
+| Role | Email | Password | Allowed Access & Responsibilities |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin@erp.com` | `Admin@123` | Full access across all modules (CRM, Inventory, Challans, Settings). |
+| **Sales** | `sales@erp.com` | `Sales@123` | Customer CRM, Follow-up notes, Sales Challan creation & confirmation. |
+| **Warehouse** | `warehouse@erp.com` | `Warehouse@123` | Product catalog, Location tracking, Manual Stock IN/OUT adjustments, Audit logs. |
+| **Accounts** | `accounts@erp.com` | `Accounts@123` | Financial summary, Confirmed Challan views, Printable PDF Invoice generation. |
 
-```
-mini-erp-crm/
-├── backend/          # Express + TypeScript backend
-│   ├── prisma/       # Prisma schema and migrations
-│   ├── src/
-│   │   ├── lib/      # Database connection
-│   │   ├── middleware/ # Express middleware
-│   │   ├── routes/   # API routes
-│   │   └── index.ts  # Server entry point
-│   └── .env.example  # Environment variables template
-├── frontend/         # React + Vite frontend
-│   ├── src/
-│   │   ├── pages/    # React pages
-│   │   ├── App.tsx   # Main app component with routing
-│   │   └── main.tsx  # React entry point
-│   └── .env.example  # Environment variables template
-└── README.md
-```
+> 💡 **Quick Login**: The frontend Login screen includes **1-Click Demo Buttons** to instantly log in as any role without typing!
 
-## Setup Instructions
+---
+
+## 🏗️ Architecture & Business Logic Highlights
+
+### Core Modules
+1. **Authentication & Role-Based Access Control (RBAC)**: JWT token-based authentication with fine-grained API and UI permission guards (`Admin`, `Sales`, `Warehouse`, `Accounts`).
+2. **Customer CRM Module**: Manage wholesale customers, track customer status (`Lead`, `Active`, `Inactive`), schedule follow-up dates, and maintain an interactive discussion timeline.
+3. **Product & Inventory Module**: Real-time SKU stock tracking, warehouse location mapping (rack/bay), and automated low-stock alerts (`currentStock <= minStockAlert`).
+4. **Stock Movement Audit Log**: Immutable audit trail logging every stock `IN` or `OUT` adjustment along with quantity changed, reason, responsible staff member, and timestamp.
+5. **Sales Challan Dispatch Engine**:
+   - **Atomic Stock Reservation**: Confirming a Challan atomically decrements inventory stock level and logs an `OUT` movement log.
+   - **Negative Stock Prevention**: API validates stock availability. Returns `400 Bad Request` with product details if stock is insufficient.
+   - **Historical Snapshots**: Stores frozen snapshots of customer details and product pricing at creation time, preserving historical accuracy.
+   - **Printable PDF Invoices**: Client-side clean PDF invoice view for dispatches.
+6. **Operations Dashboard**: Real-time KPI summary widgets, stock reorder alert banners, recent sales challan feeds, and stock movement feeds.
+
+---
+
+## 🛠️ Required Tech Stack
+
+- **Backend**: Node.js, Express.js, TypeScript, Prisma ORM, JWT, bcryptjs, Zod validation.
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons, Axios.
+- **Database**: PostgreSQL (Production) / SQLite (Zero-config local development).
+- **DevOps**: Docker, Docker Compose, Postman Collection.
+
+---
+
+## 🚀 Quick Local Setup Instructions
 
 ### Prerequisites
+- Node.js (v18+)
+- npm (v9+)
 
-- Node.js (v18 or higher)
-- PostgreSQL (running locally)
-- npm or yarn
-
-### Backend Setup
-
-1. Navigate to the backend directory:
+### Step 1: Clone & Setup Backend
 ```bash
 cd backend
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` with your PostgreSQL credentials:
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/mini_erp_crm?schema=public"
-JWT_SECRET="your-secret-key-change-in-production"
-```
-
-5. Generate Prisma client and run migrations:
-```bash
+# Generate Prisma Client & Push Database Schema
 npx prisma generate
-npx prisma migrate dev --name init
-```
+npx prisma db push --accept-data-loss
 
-6. Start the development server:
-```bash
+# Seed Default Users & Sample Data
+npm run seed
+
+# Start Backend Server (runs on http://localhost:5000)
 npm run dev
 ```
 
-The backend server will run on `http://localhost:5000`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
+### Step 2: Setup Frontend
 ```bash
-cd frontend
-```
-
-2. Install dependencies:
-```bash
+cd ../frontend
 npm install
-```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-4. Start the development server:
-```bash
+# Start Vite Development Server (runs on http://localhost:3000)
 npm run dev
 ```
 
-The frontend will run on `http://localhost:5173`
+Open `http://localhost:3000` in your browser and log in using the demo buttons!
 
-## Available Scripts
+---
 
-### Backend
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build TypeScript to JavaScript
-- `npm start` - Start production server
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run database migrations
-- `npm run prisma:studio` - Open Prisma Studio
+## 🐳 Docker Setup (Single Command Run)
 
-### Frontend
-- `npm run dev` - Start Vite development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+Spin up PostgreSQL, Backend API, and Frontend web server with a single command:
 
-## API Endpoints
+```bash
+docker-compose up --build
+```
 
-### Health Check
-- `GET /api/health` - Check server status
+- **Frontend Application**: `http://localhost:80`
+- **Backend API**: `http://localhost:5000`
+- **PostgreSQL Database**: `localhost:5432`
 
-## Frontend Routes
+---
 
-- `/` - Home page
-- `/login` - Login page (authentication to be implemented)
-- `/dashboard` - Dashboard (business modules to be implemented)
+## 📄 Postman Collection
 
-## Development Notes
+A complete Postman collection is included under the `/postman` folder:
+- File location: `postman/Mini_ERP_CRM.postman_collection.json`
+- Includes pre-configured environment variables (`{{baseUrl}}`, `{{token}}`).
+- Automatically captures the JWT bearer token upon successful login.
 
-- The project is set up with basic foundations only
-- Business modules (customers, products, orders, etc.) are not yet implemented
-- JWT authentication is configured but not yet implemented
-- Prisma schema is ready for model definitions
-- CORS is configured for frontend-backend communication
+---
+
+## 🌐 Deployment Instructions
+
+### Option 1: Free Hosting Platform Deployment
+- **Frontend**: Deploy `frontend/` to **Vercel** or **Render Static Site**.
+  - Build command: `npm run build`
+  - Output directory: `dist`
+  - Set Environment Variable: `VITE_API_BASE_URL=https://your-backend.onrender.com/api/v1`
+- **Backend**: Deploy `backend/` to **Render** or **Railway**.
+  - Build command: `npm run build`
+  - Start command: `npm start`
+- **Database**: Free Managed PostgreSQL on **Supabase** or **Neon**.
+  - Copy database connection string into `DATABASE_URL`.
+
+### Option 2: AWS Deployment (EC2 + Docker)
+1. Launch an AWS EC2 Ubuntu instance.
+2. Install Docker & Docker Compose:
+   ```bash
+   sudo apt update && sudo apt install -y docker.io docker-compose
+   ```
+3. Clone repository and launch containers:
+   ```bash
+   git clone <repo-url>
+   cd antiG
+   sudo docker-compose up -d --build
+   ```
+
+---
+
+## 📌 Assumptions Made
+
+1. **Dual DB Capability**: Prisma uses SQLite for instant local execution without external DB installation, while supporting seamless connection to PostgreSQL for production/Docker.
+2. **Challan Workflow**: Challans can be created as `DRAFT` (stock unchanged) or `CONFIRMED` (stock reduced immediately). Transitioning from `CONFIRMED` to `CANCELLED` restores stock levels.

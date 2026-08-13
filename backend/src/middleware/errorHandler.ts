@@ -1,35 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/appError';
+import { sendResponse } from '../utils/response';
 
 export const errorHandler = (
-  err: Error,
+  err: any,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  console.error(err.stack);
-  const prismaError = err as Error & { code?: string };
+  console.error('🔥 Server Error:', err);
 
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      error: err.message,
-    });
-  }
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
 
-  if (prismaError.code === 'P2002') {
-    return res.status(409).json({
-      error: 'Duplicate value violates a unique constraint',
-    });
-  }
-
-  if (prismaError.code === 'P2025') {
-    return res.status(404).json({
-      error: 'Requested resource was not found',
-    });
-  }
-
-  return res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
-  });
+  return sendResponse(
+    res,
+    statusCode,
+    false,
+    message,
+    null,
+    undefined,
+    process.env.NODE_ENV === 'development' ? err.stack : undefined
+  );
 };

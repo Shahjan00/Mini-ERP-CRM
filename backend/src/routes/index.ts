@@ -1,27 +1,18 @@
 import { Router } from 'express';
-import authRoutes from './auth';
-import customerRoutes from './customers';
-import productRoutes from './products';
-import salesChallanRoutes from './salesChallans';
-import dashboardRoutes from './dashboard';
-import { authenticate } from '../middleware/auth';
+import authRoutes from './auth.routes';
+import customerRoutes from './customer.routes';
+import productRoutes from './product.routes';
+import inventoryRoutes from './inventory.routes';
+import challanRoutes from './challan.routes';
+import dashboardRoutes from './dashboard.routes';
 
 const router = Router();
 
-// Health check endpoint
-router.get('/health', (req: any, res: any) => {
-  res.json({ status: 'ok', message: 'Server is running' });
-});
-
-// Auth routes
 router.use('/auth', authRoutes);
-
-// Authenticate all remaining API routes
-router.use(authenticate);
-
 router.use('/customers', customerRoutes);
 router.use('/products', productRoutes);
-router.use('/sales-challans', salesChallanRoutes);
+router.use('/inventory', inventoryRoutes);
+router.use('/challans', challanRoutes);
 router.use('/dashboard', dashboardRoutes);
 
 export default router;

@@ -1,45 +1,53 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/auth';
+import jwt from 'jsonwebtoken';
+import { config } from '../config';
+import { sendResponse } from '../utils/response';
 
 export interface AuthRequest extends Request {
   user?: {
-    userId: string;
+    id: string;
     email: string;
+    name: string;
     role: string;
   };
 }
 
-export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateJwt = (req: AuthRequest, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return sendResponse(res, 401, false, 'Access denied. Authorization token missing or malformed.');
+  }
+
+  const token = authHeader.split(' ')[1];
+
   try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized - No token provided' });
-    }
-
-    const token = authHeader.substring(7);
-    const decoded = verifyToken(token);
-
-    req.user = {
-      userId: decoded.userId,
-      email: decoded.email,
-      role: decoded.role
+    const decoded = jwt.verify(token, config.jwtSecret) as {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
     };
-
+    req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Unauthorized - Invalid token' });
+    return sendResponse(res, 401, false, 'Invalid or expired authentication token.');
   }
 };
 
-export const authorize = (...allowedRoles: string[]) => {
+export const authorizeRoles = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized - No user found' });
+      return sendResponse(res, 401, false, 'Unauthorized access.');
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Forbidden - Insufficient permissions' });
+    if (!roles.includes(req.user.role)) {
+      return sendResponse(
+        res,
+        403,
+        false,
+        `Access denied. Role '${req.user.role}' is not authorized to perform this operation.`
+      );
     }
 
     next();
